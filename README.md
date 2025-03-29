@@ -6,7 +6,7 @@
 
 ![Screenshot (795)](https://github.com/user-attachments/assets/bb8fefa5-ac00-42cd-8007-114b7cff0102)
 
-https://www.youtube.com/watch?v=FJ254wKFZnM
+
 
 ---
 
@@ -48,8 +48,8 @@ Klimate is a web app that gives you detailed weather information for your locati
 ---
 
 ## Deployment Link
+https://klimateee.netlify.app/
 
-https://klimate-som.vercel.app/
 
 ---
 
