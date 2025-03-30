@@ -1,63 +1,3 @@
-// import { BrowserRouter, Route, Routes } from 'react-router-dom';
-// import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-// import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-
-// import Layout from './app_components/Layout';
-// import { ThemeProvider } from './context/theme-provider';
-// import WeatherDashboard from './pages/weather-dashboard';
-// import CityPage from './pages/city-page';
-// import { Toaster } from './components/ui/sonner';
-
-
-// const App = () => {
-
-
-//   const queryClient = new QueryClient({
-//     defaultOptions: {
-//       queries: {
-//         staleTime: 5 * 60 * 1000, 
-//         gcTime: 10 * 60 * 1000, 
-//         retry: false,
-//         refetchOnWindowFocus: false
-//       }
-//     }
-//   });
-
-
-//   return (
-//     <QueryClientProvider client={queryClient}>
-
-
-//       <BrowserRouter>
-
-//         <ThemeProvider defaultTheme="dark">
-
-//           <Layout>
-
-//             <Routes>
-
-//               <Route path="/" element={<WeatherDashboard />} />
-
-//               <Route path="/city/:cityName" element={<CityPage />} />
-
-//             </Routes>
-            
-//           </Layout>
-
-//           <Toaster richColors />
-
-//         </ThemeProvider>
-
-//       </BrowserRouter>
-
-//       <ReactQueryDevtools initialIsOpen={false} />
-      
-//     </QueryClientProvider>
-//   );
-
-// };
-
-// export default App;
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -68,19 +8,20 @@ import { ThemeProvider } from './context/theme-provider';
 import WeatherDashboard from './pages/weather-dashboard';
 import CityPage from './pages/city-page';
 import { Toaster } from './components/ui/sonner';
-import { Skeleton } from './components/ui/skeleton';
+import { Button } from './components/ui/button';
+import { MapPin } from 'lucide-react'; // Import MapPin Icon
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'dark'; // Default to dark mode
-  });
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [location, setLocation] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    document.documentElement.classList.add(theme); // Apply dark mode instantly
+    document.documentElement.classList.add(theme);
     localStorage.setItem('theme', theme);
 
-    const timer = setTimeout(() => setIsLoading(false), 1500); // Simulated load time
+    const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
   }, [theme]);
 
@@ -94,6 +35,31 @@ const App = () => {
       },
     },
   });
+
+  // Get User Location and Fetch Weather
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          };
+          setLocation(userLocation);
+          setError(null);
+        },
+        () => {
+          setError('Unable to retrieve location. Please allow location access.');
+        }
+      );
+    } else {
+      setError('Geolocation is not supported by this browser.');
+    }
+  };
+
+  useEffect(() => {
+    handleGetLocation(); // Auto-fetch location when app starts
+  }, []);
 
   if (isLoading) {
     return (
@@ -111,10 +77,27 @@ const App = () => {
       <BrowserRouter>
         <ThemeProvider defaultTheme={theme}>
           <Layout>
+            {/* Location Button in Top-Right Corner */}
+            <div className="absolute top-4 right-4">
+              <Button onClick={handleGetLocation} variant="outline" className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" /> Get My Location
+              </Button>
+            </div>
+
             <Routes>
-              <Route path="/" element={<WeatherDashboard />} />
+              <Route path="/" element={<WeatherDashboard location={location} />} />
               <Route path="/city/:cityName" element={<CityPage />} />
             </Routes>
+
+            {/* Location Error Message */}
+            {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+
+            {/* Display Coordinates Below Weather Info */}
+            {location && (
+              <p className="text-center text-sm text-gray-600 mt-2">
+                📍 Your Location: {location.lat.toFixed(2)}, {location.lon.toFixed(2)}
+              </p>
+            )}
           </Layout>
           <Toaster richColors />
         </ThemeProvider>
