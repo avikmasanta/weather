@@ -161,12 +161,12 @@
 
 
 /* eslint-disable react/prop-types */
-
 import { useState, useEffect } from "react";
-import { ArrowDown, ArrowUp, Droplet, Wind, Clock } from "lucide-react"; 
+import { ArrowDown, ArrowUp, Droplet, Wind, Clock, RefreshCcw } from "lucide-react"; 
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-const CurrentWeather = ({ weatherData, locationName }) => {
+const CurrentWeather = ({ weatherData, locationName, refetchWeather }) => {
   const {
     main: { temp, feels_like, temp_min, temp_max, humidity },
     wind: { speed },
@@ -176,6 +176,7 @@ const CurrentWeather = ({ weatherData, locationName }) => {
   const formatTemperature = (temperature) => `${Math.round(temperature)}`;
 
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -192,24 +193,41 @@ const CurrentWeather = ({ weatherData, locationName }) => {
     return `https://openweathermap.org/img/wn/${weather[0]?.icon}@4x.png`;
   };
 
+  // Handle Refresh Click
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refetchWeather(); // Function to re-fetch weather data
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
+
   return (
     <Card className="overflow-hidden shadow-lg rounded-xl">
       <CardContent className="p-6">
-        <div className="grid grid-6 md:grid-cols-2 gap-4">
-          {/* Location Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Location Info & Temperature */}
           <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-end gap-1">
+            <div className="flex items-center justify-between">
+              <div>
                 <h2 className="text-2xl font-bold tracking-tighter">
                   {locationName?.name ? locationName?.name : locationName}
                 </h2>
                 {locationName?.state && (
                   <span className="text-muted-foreground">, {locationName?.state}</span>
                 )}
+                <p className="text-sm text-muted-foreground">{locationName?.sys?.country}</p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {locationName?.sys?.country}
-              </p>
+
+              {/* Refresh Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="flex items-center gap-2"
+              >
+                <RefreshCcw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                {isRefreshing ? "Refreshing..." : "Refresh"}
+              </Button>
             </div>
 
             {/* Temperature Display */}
